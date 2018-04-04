@@ -8,24 +8,56 @@ namespace Brincadeira.Dialogs
     [Serializable]
     public class RootDialog : IDialog<object>
     {
-        public Task StartAsync(IDialogContext context)
-        {
-            context.Wait(MessageReceivedAsync);
+        string nome;
+        int idade;
 
-            return Task.CompletedTask;
+        public async Task StartAsync(IDialogContext context)
+        {
+            context.Wait(RetornoAsync);
+            await Task.CompletedTask;
         }
 
-        private async Task MessageReceivedAsync(IDialogContext context, IAwaitable<object> result)
+        private async Task RetornoAsync(IDialogContext context, IAwaitable<object> result)
         {
-            var activity = await result as Activity;
+            var resposta = await result as IMessageActivity;
+            await EnviaMsgInicial(context);
+        }
 
-            // calculate something for us to return
-            int length = (activity.Text ?? string.Empty).Length;
+        async Task EnviaMsgInicial(IDialogContext context)
+        {
+            await context.PostAsync("Olá, sou o teste multidialogo");
+            context.Call(new NomeDialog(), NomeDialogResume);
+        }
 
-            // return our reply to the user
-            await context.PostAsync($"You sent {activity.Text} which was {length} characters");
+        async Task NomeDialogResume(IDialogContext context, IAwaitable<string> result)
+        {
+            try
+            {
+                nome = await result;
+                context.Call(new IdadeDialogo(nome), IdadeDialogResumo);
+            }
+            catch (TooManyAttemptsException)
+            {
+                await context.PostAsync("Queimou todas as tentativas. Bora tentar de novo");
+                await EnviaMsgInicial(context);
+            }
+        }
 
-            context.Wait(MessageReceivedAsync);
+        async Task IdadeDialogResumo(IDialogContext context, IAwaitable<int> result)
+        {
+            try
+            {
+                idade = await result;
+                await context.PostAsync($"Seu nome é {nome} e você tem {idade} anos");
+            }
+            catch (TooManyAttemptsException)
+            {
+                await context.PostAsync("QUeimou todas as tentativas");
+            }
+            finally
+            {
+                await EnviaMsgInicial(context);
+            }
         }
     }
 }
