@@ -8,6 +8,7 @@ namespace Brincadeira.Dialogs
     [Serializable]
     public class RootDialog : IDialog<object>
     {
+        //Em produção armazenar esses dados em BD
         string nome;
         int idade;
 
