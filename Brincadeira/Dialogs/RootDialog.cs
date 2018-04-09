@@ -8,9 +8,6 @@ namespace Brincadeira.Dialogs
     [Serializable]
     public class RootDialog : IDialog<object>
     {
-        string nome;
-        int idade;
-
         public async Task StartAsync(IDialogContext context)
         {
             context.Wait(RetornoAsync);
@@ -25,39 +22,8 @@ namespace Brincadeira.Dialogs
 
         async Task EnviaMsgInicial(IDialogContext context)
         {
-            await context.PostAsync("Olá, sou o teste multidialogo");
-            context.Call(new NomeDialog(), NomeDialogResume);
+            await context.SayAsync("Olá, sou o teste multidialogo", "Olá, sou o teste multidialogo");
         }
-
-        async Task NomeDialogResume(IDialogContext context, IAwaitable<string> result)
-        {
-            try
-            {
-                nome = await result;
-                context.Call(new IdadeDialogo(nome), IdadeDialogResumo);
-            }
-            catch (TooManyAttemptsException)
-            {
-                await context.PostAsync("Queimou todas as tentativas. Bora tentar de novo");
-                await EnviaMsgInicial(context);
-            }
-        }
-
-        async Task IdadeDialogResumo(IDialogContext context, IAwaitable<int> result)
-        {
-            try
-            {
-                idade = await result;
-                await context.PostAsync($"Seu nome é {nome} e você tem {idade} anos");
-            }
-            catch (TooManyAttemptsException)
-            {
-                await context.PostAsync("QUeimou todas as tentativas");
-            }
-            finally
-            {
-                await EnviaMsgInicial(context);
-            }
-        }
+       
     }
 }
