@@ -8,22 +8,30 @@ namespace Brincadeira.Dialogs
     [Serializable]
     public class RootDialog : IDialog<object>
     {
-        public async Task StartAsync(IDialogContext context)
+        public Task StartAsync(IDialogContext context)
         {
-            context.Wait(RetornoAsync);
-            await Task.CompletedTask;
+            context.Wait(MessageReceivedAsync);
+
+            return Task.CompletedTask;
         }
 
-        private async Task RetornoAsync(IDialogContext context, IAwaitable<object> result)
+        private async Task MessageReceivedAsync(IDialogContext context, IAwaitable<object> result)
         {
-            var resposta = await result as IMessageActivity;
-            await EnviaMsgInicial(context);
+            var activity = await result as Activity;           
+
+            var reply = activity.CreateReply("Teste");
+            reply.Speak = "Teste de fala";
+            reply.InputHint = InputHints.AcceptingInput;
+
+            await context.PostAsync(reply);
+            // calculate something for us to return
+            //int length = (activity.Text ?? string.Empty).Length;
+
+            //// return our reply to the user
+            //await context.PostAsync($"You sent {activity.Text} which was {length} characters");
+
+            context.Wait(MessageReceivedAsync);
         }
 
-        async Task EnviaMsgInicial(IDialogContext context)
-        {
-            await context.SayAsync("Olá, sou o teste multidialogo", "Olá, sou o teste multidialogo");
-        }
-       
     }
 }

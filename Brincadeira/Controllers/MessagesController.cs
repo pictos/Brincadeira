@@ -18,6 +18,7 @@ namespace Brincadeira
         {
             if (activity.Type == ActivityTypes.Message)
             {
+                activity.Locale = "pt-BR";
                 await Conversation.SendAsync(activity, () => new Dialogs.RootDialog());
             }
             else
